@@ -1,0 +1,134 @@
+allprojects {
+
+	apply plugin: 'java'
+
+	group 'de.uniba.dsg'
+	version '1.0'
+
+	sourceCompatibility = 11
+	targetCompatibility = 11
+
+	repositories {
+		mavenCentral()
+	}
+
+	if( it.name == 'shared' ) {
+		sourceSets {
+			main {
+				java {
+					srcDir 'src/main/java'
+					srcDir 'src/generated/main/java'
+					srcDir 'src/generated/main/grpc'
+				}
+			}
+		}
+	}
+
+	if( it.name == 'client' || it.name == 'searchservice') {
+		apply plugin: 'application'
+
+		dependencies {
+			implementation project(':shared')
+		}
+
+	}
+
+	if (it.name == 'server') {
+		apply plugin: 'application'
+
+		dependencies {
+			implementation project(':shared')
+		}
+	}
+
+	dependencies {
+		// for rabbitmq
+		implementation 'com.rabbitmq:amqp-client:5.14.2'
+		implementation 'org.slf4j:slf4j-simple:1.7.36'
+		// for jax-rs
+		implementation 'org.glassfish.jersey.core:jersey-client:2.30.1'
+		implementation 'org.glassfish.jersey.core:jersey-server:2.30.1'
+		implementation 'org.glassfish.jersey.containers:jersey-container-jdk-http:2.30.1'
+		implementation 'org.glassfish.jersey.containers:jersey-container-servlet:2.30.1'
+		implementation 'org.glassfish.jersey.inject:jersey-hk2:2.30.1'
+		implementation 'org.glassfish.jersey.core:jersey-common:2.30.1'
+		implementation 'org.glassfish.jersey.media:jersey-media-moxy:2.30.1'
+		implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
+		implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.3'
+		// for grpc
+		implementation 'io.grpc:grpc-netty-shaded:1.58.0'
+		implementation 'io.grpc:grpc-protobuf:1.58.0'
+		implementation 'io.grpc:grpc-stub:1.58.0'
+		implementation "com.google.protobuf:protobuf-java-util:3.24.0"
+		implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
+
+
+		testImplementation group: 'junit', name: 'junit', version: '4.12'
+	}
+
+}
+
+project(':client') {
+	application {
+		mainClass.set('de.uniba.rz.app.Main')
+	}
+
+	jar {
+		manifest {
+			attributes(
+					'Main-Class': 'de.uniba.rz.app.Main'
+			)
+		}
+	}
+}
+
+project(':server') {
+	application {
+		mainClass.set('de.uniba.rz.backend.TicketServerMain')
+	}
+
+	run {
+		standardInput = System.in
+	}
+
+	jar {
+		manifest {
+			attributes(
+					'Main-Class': 'de.uniba.rz.backend.TicketServerMain'
+			)
+		}
+	}
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'com.google.protobuf'
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.9.4'
+	}
+}
+
+protobuf {
+	protoc {
+		path = '/opt/homebrew/bin/protoc'
+	}
+	plugins {
+		grpc {
+			artifact = 'io.grpc:protoc-gen-grpc-java:1.58.0'
+		}
+	}
+	generateProtoTasks {
+		all()*.plugins {
+			grpc {}
+		}
+	}
+	generatedFilesBaseDir = "$projectDir/shared/src/generated"
+}
+
+wrapper {
+	gradleVersion = '7.3'
+}
