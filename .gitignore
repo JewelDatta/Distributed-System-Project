@@ -1,6 +1,7 @@
 .gradle
 **/build/
 !src/**/build/
+**/generated/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -22,7 +23,6 @@ gradle-app.setting
 
 # User-specific stuff:
 .idea/*
-/shared/*
 # Sensitive or high-churn files:
 .idea/dataSources.ids
 .idea/dataSources.xml
